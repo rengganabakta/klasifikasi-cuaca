@@ -11,3 +11,6 @@ services:
         value: sensor_db
       - key: MONGODB_COLLECTION
         value: sensor_data
+    # Ensure model.pkl is included in the deployment
+    include:
+      - model.pkl
