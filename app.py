@@ -89,11 +89,15 @@ def get_latest_sensor_data():
     if sensor_collection is not None:
         latest_data = sensor_collection.find_one(sort=[('timestamp', -1)])
         if latest_data:
+            prediction = latest_data.get('prediction', '-')
+            # Convert prediction to text if it's a number
+            if prediction in ['0', '1']:
+                prediction = convert_prediction_to_text(prediction)
             return {
                 'temperature': latest_data.get('temperature', '-'),
                 'humidity': latest_data.get('humidity', '-'),
                 'pressure': latest_data.get('pressure', '-'),
-                'prediction': latest_data.get('prediction', '-')
+                'prediction': prediction
             }
     return {
         'temperature': '-',
@@ -123,6 +127,14 @@ def history():
         all_readings = json.loads(json_util.dumps(all_readings))
     return render_template('history.html', readings=all_readings)
 
+def convert_prediction_to_text(prediction):
+    """Convert prediction number to text"""
+    prediction_map = {
+        '0': 'Sunny',
+        '1': 'Rain'
+    }
+    return prediction_map.get(str(prediction), str(prediction))
+
 @app.route('/sensor-data', methods=['POST'])
 def receive_sensor_data():
     try:
@@ -147,7 +159,8 @@ def receive_sensor_data():
                 if hasattr(label_encoder, 'inverse_transform'):
                     prediction = label_encoder.inverse_transform(prediction)
                 
-                prediction_value = str(prediction[0])
+                # Convert prediction to text
+                prediction_value = convert_prediction_to_text(prediction[0])
                 
                 # Store data in MongoDB
                 if sensor_collection is not None:
