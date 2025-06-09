@@ -47,11 +47,26 @@ try:
     print(f"Type of loaded model: {type(model_dict)}")
     print(f"Model keys: {model_dict.keys()}")
     
-    # Extract components
+    # Extract components with error handling
+    if 'model' not in model_dict:
+        raise KeyError("'model' key not found in model_dict")
+    if 'label_encoder' not in model_dict:
+        raise KeyError("'label_encoder' key not found in model_dict")
+    if 'feature_names' not in model_dict:
+        raise KeyError("'feature_names' key not found in model_dict")
+    
     model = model_dict['model']
     label_encoder = model_dict['label_encoder']
     feature_names = model_dict['feature_names']
     smote = model_dict.get('smote')  # SMOTE is optional
+    
+    # Verify component types
+    if not hasattr(model, 'predict'):
+        raise TypeError("Model does not have predict method")
+    if not hasattr(label_encoder, 'inverse_transform'):
+        raise TypeError("Label encoder does not have inverse_transform method")
+    if not isinstance(feature_names, (list, tuple)):
+        raise TypeError("Feature names must be a list or tuple")
     
     print("Model components loaded successfully!")
     print(f"Model type: {type(model)}")
