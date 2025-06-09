@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sensor History - IoT Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --dark-bg: #1a1d21;
+        --card-bg: #2d3238;
+        --text-primary: #ffffff;
+        --text-secondary: #b3b3b3;
+        --accent-blue: #0d6efd;
+        --accent-red: #dc3545;
+        --accent-green: #198754;
+        --accent-cyan: #0dcaf0;
+      }
+
+      body {
+        background-color: var(--dark-bg);
+        color: var(--text-primary);
+      }
+
+      .navbar {
+        background-color: var(--card-bg) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .card {
+        background-color: var(--card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      .table {
+        color: var(--text-primary);
+      }
+
+      .table thead th {
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-secondary);
+      }
+
+      .table td {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .table-hover tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+
+      .back-button {
+        color: var(--text-primary);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .back-button:hover {
+        color: var(--accent-blue);
+      }
+
+      .timestamp {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <a class="navbar-brand" href="/">
+          <i class="fas fa-microchip me-2"></i>
+          IoT Sensor Dashboard
+        </a>
+      </div>
+    </nav>
+
+    <div class="container mt-4">
+      <a href="/" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back to Dashboard
+      </a>
+
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-4">Complete Sensor History</h5>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Temperature (°C)</th>
+                  <th>Humidity (%)</th>
+                  <th>Pressure (hPa)</th>
+                  <th>Prediction</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for reading in readings %}
+                <tr>
+                  <td class="timestamp">{{ reading.timestamp['$date'] }}</td>
+                  <td>{{ reading.temperature }}</td>
+                  <td>{{ reading.humidity }}</td>
+                  <td>{{ reading.pressure }}</td>
+                  <td>{{ reading.prediction }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

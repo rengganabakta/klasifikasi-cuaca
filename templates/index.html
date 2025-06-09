@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IoT Sensor Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --dark-bg: #1a1d21;
+        --card-bg: #2d3238;
+        --text-primary: #ffffff;
+        --text-secondary: #b3b3b3;
+        --accent-blue: #0d6efd;
+        --accent-red: #dc3545;
+        --accent-green: #198754;
+        --accent-cyan: #0dcaf0;
+      }
+
+      body {
+        background-color: var(--dark-bg);
+        color: var(--text-primary);
+      }
+
+      .navbar {
+        background-color: var(--card-bg) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .card {
+        background-color: var(--card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .sensor-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--text-primary);
+      }
+
+      .sensor-label {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+      }
+
+      .prediction-card {
+        background: linear-gradient(135deg, #2d3238, #1a1d21);
+        border: 1px solid rgba(13, 110, 253, 0.3);
+      }
+
+      .card-title {
+        color: var(--text-secondary);
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--dark-bg);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--card-bg);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #3d4248;
+      }
+
+      /* Chart customization */
+      .chart-container {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        padding: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <a class="navbar-brand" href="#">
+          <i class="fas fa-microchip me-2"></i>
+          IoT Sensor Dashboard
+        </a>
+      </div>
+    </nav>
+
+    <div class="container mt-4">
+      <div class="row">
+        <!-- Temperature Card -->
+        <div class="col-md-4 mb-4">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <i
+                class="fas fa-temperature-high fa-3x mb-3"
+                style="color: var(--accent-red)"
+              ></i>
+              <h5 class="card-title">Temperature</h5>
+              <div class="sensor-value" id="temperature">--°C</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Humidity Card -->
+        <div class="col-md-4 mb-4">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <i
+                class="fas fa-tint fa-3x mb-3"
+                style="color: var(--accent-cyan)"
+              ></i>
+              <h5 class="card-title">Humidity</h5>
+              <div class="sensor-value" id="humidity">--%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pressure Card -->
+        <div class="col-md-4 mb-4">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <i
+                class="fas fa-compress-alt fa-3x mb-3"
+                style="color: var(--accent-green)"
+              ></i>
+              <h5 class="card-title">Pressure</h5>
+              <div class="sensor-value" id="pressure">-- hPa</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prediction Card -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card prediction-card">
+            <div class="card-body text-center">
+              <h3 class="card-title">Prediction Result</h3>
+              <div class="sensor-value" id="prediction">--</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Sensor Data History</h5>
+              <div class="chart-container">
+                <canvas id="sensorChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Readings -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <div
+                class="d-flex justify-content-between align-items-center mb-4"
+              >
+                <h5 class="card-title mb-0">Recent Readings</h5>
+                <a href="/history" class="btn btn-primary">
+                  <i class="fas fa-history me-2"></i>
+                  View Full History
+                </a>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Temperature (°C)</th>
+                      <th>Humidity (%)</th>
+                      <th>Pressure (hPa)</th>
+                      <th>Prediction</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for reading in latest_readings %}
+                    <tr>
+                      <td class="timestamp">
+                        {{ reading.timestamp['$date'] }}
+                      </td>
+                      <td>{{ reading.temperature }}</td>
+                      <td>{{ reading.humidity }}</td>
+                      <td>{{ reading.pressure }}</td>
+                      <td>{{ reading.prediction }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      // Chart.js configuration for dark theme
+      Chart.defaults.color = "#b3b3b3";
+      Chart.defaults.borderColor = "rgba(255, 255, 255, 0.1)";
+
+      // Initialize Chart
+      const ctx = document.getElementById("sensorChart").getContext("2d");
+      const sensorChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Temperature",
+              data: [],
+              borderColor: "#dc3545",
+              backgroundColor: "rgba(220, 53, 69, 0.1)",
+              tension: 0.4,
+              fill: true,
+            },
+            {
+              label: "Humidity",
+              data: [],
+              borderColor: "#0dcaf0",
+              backgroundColor: "rgba(13, 202, 240, 0.1)",
+              tension: 0.4,
+              fill: true,
+            },
+            {
+              label: "Pressure",
+              data: [],
+              borderColor: "#198754",
+              backgroundColor: "rgba(25, 135, 84, 0.1)",
+              tension: 0.4,
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              labels: {
+                color: "#b3b3b3",
+              },
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              grid: {
+                color: "rgba(255, 255, 255, 0.1)",
+              },
+              ticks: {
+                color: "#b3b3b3",
+              },
+            },
+            x: {
+              grid: {
+                color: "rgba(255, 255, 255, 0.1)",
+              },
+              ticks: {
+                color: "#b3b3b3",
+              },
+            },
+          },
+        },
+      });
+
+      // Function to update sensor values
+      function updateSensorValues(data) {
+        document.getElementById("temperature").textContent =
+          data.temperature === "-" ? "-" : `${data.temperature}°C`;
+        document.getElementById("humidity").textContent =
+          data.humidity === "-" ? "-" : `${data.humidity}%`;
+        document.getElementById("pressure").textContent =
+          data.pressure === "-" ? "-" : `${data.pressure} hPa`;
+        document.getElementById("prediction").textContent = data.prediction;
+
+        // Update chart only if we have valid data
+        if (
+          data.temperature !== "-" &&
+          data.humidity !== "-" &&
+          data.pressure !== "-"
+        ) {
+          const timestamp = new Date().toLocaleTimeString();
+          sensorChart.data.labels.push(timestamp);
+          sensorChart.data.datasets[0].data.push(data.temperature);
+          sensorChart.data.datasets[1].data.push(data.humidity);
+          sensorChart.data.datasets[2].data.push(data.pressure);
+
+          // Keep only last 10 data points
+          if (sensorChart.data.labels.length > 10) {
+            sensorChart.data.labels.shift();
+            sensorChart.data.datasets.forEach((dataset) =>
+              dataset.data.shift()
+            );
+          }
+
+          sensorChart.update();
+        }
+      }
+
+      // Fetch latest data every 5 seconds
+      setInterval(() => {
+        fetch("/latest-data")
+          .then((response) => response.json())
+          .then((data) => {
+            updateSensorValues(data);
+          })
+          .catch((error) => console.error("Error:", error));
+      }, 5000);
+    </script>
+  </body>
+</html>
