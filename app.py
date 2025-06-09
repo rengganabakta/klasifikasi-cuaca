@@ -37,6 +37,10 @@ except Exception as e:
 
 # Load the model
 try:
+    print("Attempting to load model.pkl...")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Files in current directory: {os.listdir('.')}")
+    
     with open('model.pkl', 'rb') as file:
         model_dict = pickle.load(file)
     print("Model loaded successfully!")
@@ -47,13 +51,23 @@ try:
     model = model_dict['model']
     label_encoder = model_dict['label_encoder']
     feature_names = model_dict['feature_names']
+    smote = model_dict.get('smote')  # SMOTE is optional
     
     print("Model components loaded successfully!")
+    print(f"Model type: {type(model)}")
+    print(f"Label encoder type: {type(label_encoder)}")
+    print(f"Feature names: {feature_names}")
+    if smote:
+        print(f"SMOTE type: {type(smote)}")
 except Exception as e:
-    print(f"Error loading model: {e}")
+    print(f"Error loading model: {str(e)}")
+    print(f"Error type: {type(e)}")
+    import traceback
+    print(f"Traceback: {traceback.format_exc()}")
     model = None
     label_encoder = None
     feature_names = None
+    smote = None
 
 def get_latest_sensor_data():
     """Get the latest sensor data from MongoDB"""
