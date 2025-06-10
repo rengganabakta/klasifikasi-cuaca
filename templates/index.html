@@ -296,8 +296,15 @@
         },
       });
 
-      // Function to update sensor values
+      // Function to format date
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString();
+      }
+
+      // Function to update sensor values and chart
       function updateSensorValues(data) {
+        // Update current values
         document.getElementById("temperature").textContent =
           data.temperature === "-" ? "-" : `${data.temperature}°C`;
         document.getElementById("humidity").textContent =
@@ -306,7 +313,7 @@
           data.pressure === "-" ? "-" : `${data.pressure} hPa`;
         document.getElementById("prediction").textContent = data.prediction;
 
-        // Update chart only if we have valid data
+        // Update chart
         if (
           data.temperature !== "-" &&
           data.humidity !== "-" &&
@@ -330,15 +337,50 @@
         }
       }
 
-      // Fetch latest data every 5 seconds
+      // Function to update recent readings table
+      function updateRecentReadings() {
+        fetch("/history-data")
+          .then((response) => response.json())
+          .then((data) => {
+            const tbody = document.querySelector("table tbody");
+            tbody.innerHTML = "";
+            data.forEach((reading) => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td class="timestamp">${formatDate(reading.timestamp)}</td>
+                <td>${reading.temperature}</td>
+                <td>${reading.humidity}</td>
+                <td>${reading.pressure}</td>
+                <td>${reading.prediction}</td>
+              `;
+              tbody.appendChild(row);
+            });
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      // Update everything every 5 seconds
       setInterval(() => {
+        // Update current values and chart
         fetch("/latest-data")
           .then((response) => response.json())
           .then((data) => {
             updateSensorValues(data);
           })
           .catch((error) => console.error("Error:", error));
-      }, 5000);
+
+        // Update recent readings table
+        updateRecentReadings();
+      }, 2000);
+
+      // Initial update
+      updateSensorValues({
+        temperature: "-",
+        humidity: "-",
+        pressure: "-",
+        prediction: "-",
+      });
+      updateRecentReadings();
     </script>
   </body>
 </html>

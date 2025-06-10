@@ -205,6 +205,23 @@ def get_latest_data():
     """Endpoint to get the latest sensor data"""
     return jsonify(get_latest_sensor_data())
 
+@app.route('/history-data')
+def history_data():
+    """Get history data in JSON format"""
+    history = []
+    if sensor_collection is not None:
+        # Get last 10 readings
+        cursor = sensor_collection.find().sort('timestamp', -1).limit(10)
+        for doc in cursor:
+            history.append({
+                'temperature': doc.get('temperature', '-'),
+                'humidity': doc.get('humidity', '-'),
+                'pressure': doc.get('pressure', '-'),
+                'prediction': doc.get('prediction', '-'),
+                'timestamp': doc.get('timestamp', datetime.utcnow()).isoformat()
+            })
+    return jsonify(history)
+
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({
